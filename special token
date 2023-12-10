@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract Token is ERC20 {
+    address public Contracter;
+    bool public active;
+
+    modifier onlyContracter() {
+        require(msg.sender == Contracter, "Only the contracter can call this function");
+        _;
+    }
+
+    modifier isActive() {
+        require(active, "Token is not active");
+        _;
+    }
+
+    constructor() ERC20("Special Token", "ST") {
+        Contracter = msg.sender;
+        _mint(Contracter, 50);
+        active = true;
+    }
+
+    function mint(address TO_Address, uint256 Add_up) external onlyContracter isActive {
+        require(TO_Address != address(0), "Invalid address");
+        require(Add_up > 0, "tokens must be greater than zero");
+
+        _mint(TO_Address, Add_up);
+    }
+
+    function burn(uint256 Add_up) external isActive {
+        require(Add_up > 0, "tokens must be greater than zero");
+        require(balanceOf(msg.sender) >= Add_up, "Insufficient balance");
+
+        _burn(msg.sender, Add_up);
+    }
+
+    function Transfer_Func(address TO_Address, uint256 Add_up) external isActive {
+        require(TO_Address != address(0), "Invalid address");
+        require(Add_up > 0, "tokens must be greater than zero");
+        require(balanceOf(msg.sender) >= Add_up, "Insufficient balance");
+
+        _transfer(msg.sender, TO_Address, Add_up);
+    }
+
+    function toggleActive() external onlyContracter {
+        active = !active;
+    }
+}
